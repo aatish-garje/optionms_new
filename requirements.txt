@@ -1,0 +1,27 @@
+# Core dependencies
+streamlit
+yfinance
+pandas
+numpy
+requests
+scipy
+plotly
+ta
+
+# Additional dependencies
+python-dateutil
+pytz
+beautifulsoup4
+lxml
+
+# Optional dependencies for enhanced functionality
+websocket-client
+aiohttp
+asyncio
+nest-asyncio
+
+# Development dependencies (optional)
+jupyter
+ipykernel
+black
+flake8
