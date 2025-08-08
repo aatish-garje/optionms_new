@@ -112,9 +112,9 @@ class EnhancedNSEDataProvider:
         }
     
     def set_cookies(self):
-        """Set cookies for NSE access"""
         try:
             response = self.session.get(self.base_urls['nse'], headers=self.headers, timeout=10)
+            self.session.headers.update(self.headers)  # <- This ensures all subsequent requests use the same headers
             self.cookies = dict(response.cookies)
             return True
         except Exception as e:
@@ -131,10 +131,24 @@ class EnhancedNSEDataProvider:
             response = self.session.get(url, headers=self.headers, cookies=self.cookies, timeout=15)
             
             if response.status_code == 200:
-                data = response.json()
-                return self._process_option_chain_data(data)
+                content_type = response.headers.get("Content-Type", "")
+                if "application/json" in content_type:
+                    data = response.json()
+                    return self._process_option_chain_data(data)
+                else:
+                    st.warning("⚠️ NSE returned unexpected content type. Falling back to simulated data.")
+                    return self._get_fallback_option_chain(symbol)
             else:
+                st.warning(f"⚠️ NSE returned status code {response.status_code}. Falling back.")
                 return self._get_fallback_option_chain(symbol)
+            
+        except json.JSONDecodeError:
+            st.warning("⚠️ NSE returned invalid JSON. Likely blocked. Falling back to simulated data.")
+            return self._get_fallback_option_chain(symbol)
+        
+        except Exception as e:
+            st.error(f"NSE API Error: {e}")
+            return self._get_fallback_option_chain(symbol)
                 
         except Exception as e:
             st.error(f"NSE API Error: {e}")
